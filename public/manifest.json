@@ -1,0 +1,37 @@
+{
+    "name": "Todo",
+"short_name": "DWT",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#fff",
+"description": "A test Application for the module of Dynamic Web Technologies.",
+"icons": [
+{
+"src": "4691292_react native_react_icon (1).png",
+"sizes": "48x48",
+"type": "image/png"
+},
+{
+"src": "4691292_react native_react_icon (2).png",
+"sizes": "72x72",
+"type": "image/png"
+},
+{
+"src": "4691292_react native_react_icon (3).png",
+"sizes": "96x96",
+"type": "image/png"
+},
+{
+"src": "4691292_react native_react_icon (4).png",
+"sizes": "144x144",
+"type": "image/png"
+},
+{
+"src": "4691292_react native_react_icon (5).png",
+"sizes": "168x168",
+"type": "image/png",
+"purpose": "any"
+
+}
+]
+}
