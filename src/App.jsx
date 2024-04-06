@@ -19,47 +19,52 @@ const FILTER_MAP = {
 };
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
- function App(props) { 
+
+function App(props) {
+   
   const geoFindMe = () => {
-  if (!navigator.geolocation) {
-  console.log("Geolocation is not supported by your browser");
-  } else {
-  console.log("Locating…");
-  navigator.geolocation.getCurrentPosition(success, error);
-  }
-  };
-  const success = (position) => {
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;
-  console.log(latitude, longitude);
-  console.log(`Latitude: ${latitude}°, Longitude: ${longitude}°`);
-  console.log(`Try here: https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`);
-  locateTask(lastInsertedId, {
-  latitude: latitude,
-  longitude: longitude,
-  error: "",
-  });
-  };
-  const error = () => {
-  console.log("Unable to retrieve your location");
-  };
+    if (!navigator.geolocation) {
+    console.log("Geolocation is not supported by your browser");
+    } else {
+    console.log("Locating…");
+    navigator.geolocation.getCurrentPosition(success, error);
+    }
+    };
+    const success = (position) => {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    console.log(latitude, longitude);
+    console.log(`Latitude: ${latitude}°, Longitude: ${longitude}°`);
+    console.log(`Try here: https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`);
+    locateTask(lastInsertedId, {
+    latitude: latitude,
+    longitude: longitude,
+    error: "",
+    });
+    };
+    const error = () => {
+    console.log("Unable to retrieve your location");
+    };
 
-
-  function usePersistedState(key,defaultValue){
+  function usePersistedState(key, defaultValue) {
     const [state, setState] = useState(() => JSON.parse(localStorage.getItem(key)) || defaultValue);
-    useEffect(()=> {
-        localStorage.setItem(key, JSON.stringify(state));
-      }, [key,state]);
 
-
-    return [state,setState];
-
+    useEffect(() => {
+      localStorage.setItem(key, JSON.stringify(state));
+    }, [key, state]);
+    
+    return [state, setState];
   }
-  const [tasks, setTasks] = usePersistedState('tasks',[]);
+  
 
- // const [tasks, setTasks] = useState(props.tasks);
+  const [tasks, setTasks] = usePersistedState('tasks', []);
+
+  // const [tasks, setTasks] = useState(props.tasks);
   const [filter, setFilter] = useState("All");
   const [lastInsertedId, setLastInsertedId] = useState("");
+
+
+
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
       // if this task has the same ID as the edited task
@@ -71,7 +76,6 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
       return task;
     });
     setTasks(updatedTasks);
-   
   }
 
   function deleteTask(id) {
@@ -80,7 +84,6 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
   }
 
   function editTask(id, newName) {
-
     const editedTaskList = tasks.map((task) => {
       // if this task has the same ID as the edited task
       if (id === task.id) {
@@ -92,6 +95,7 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
     });
     setTasks(editedTaskList);
   }
+
   function locateTask(id, location) {
     console.log("locate Task", id, " before");
     console.log(location, tasks);
@@ -107,19 +111,32 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
     setTasks(locatedTaskList);
    }
 
+   function photoedTask(id) {
+    console.log("photoedTask", id);
+    const photoedTaskList = tasks.map((task) => {
+      if (id === task.id) {
+     
+        return { ...task, photo: true };
+        }
+        return task;
+        });
+        console.log(photoedTaskList);
+        setTasks(photoedTaskList); 
+       }
+
   const taskList = tasks
     ?.filter(FILTER_MAP[filter])
     .map((task) => (
       <Todo
-        id={task.id}
-        name={task.name}
-        completed={task.completed}
-        key={task.id}
-        latitude={task.location.latitude} // 
-        longitude={task.location.longitude} 
-        toggleTaskCompleted={toggleTaskCompleted}
-        deleteTask={deleteTask}
-        editTask={editTask}
+      id={task.id}
+      name={task.name}
+      completed={task.completed}
+      key={task.id}
+      location={task.location} 
+      toggleTaskCompleted={toggleTaskCompleted}
+      photoedTask={photoedTask}
+      deleteTask={deleteTask}
+      editTask={editTask}
       />
     ));
 
@@ -134,14 +151,13 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
   function addTask(name) {
     const id = "todo-" + nanoid();
-    const newTask = {
-      id: id,
-      name: name,
+    const newTask = { id: id, 
+      name: name, 
       completed: false,
       location: { latitude: "##", longitude: "##", error: "##" },
-      };
-      setLastInsertedId(id);
-      setTasks([...tasks, newTask]);     
+    };
+    setLastInsertedId(id);
+    setTasks([...tasks, newTask]);
   }
 
   const tasksNoun = taskList.length !== 1 ? "tasks" : "task";
@@ -159,7 +175,7 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
-      <Form addTask={addTask} geoFindMe={geoFindMe} />{" "}
+      <Form addTask={addTask} geoFindMe={geoFindMe}/>
       <div className="filters btn-group stack-exception">{filterList}</div>
       <h2 id="list-heading" tabIndex="-1" ref={listHeadingRef}>
         {headingText}
@@ -176,3 +192,4 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 }
 
 export default App;
+

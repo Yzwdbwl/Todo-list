@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react"; // Add useRef & useCallback
+import Popup from "reactjs-popup"; // For our popups
+import "reactjs-popup/dist/index.css"; // For the popups to look nicer.
+import Webcam from "react-webcam"; // For using react-webcam
+import { addPhoto, GetPhotoSrc } from "../db.jsx";
 
 function usePrevious(value) {
   const ref = useRef(null);
@@ -74,7 +78,9 @@ function Todo(props) {
         <label className="todo-label" htmlFor={props.id}>
           {props.name}
           &nbsp;| la {props.latitude} 
+          <a href={props.location.mapURL}>(map)</a> 
           &nbsp;| lo {props.longitude}
+          <a href={props.location.smsURL}>(sms)</a> 
         </label>
       </div>
       <div className="btn-group">
@@ -92,10 +98,38 @@ function Todo(props) {
           className="btn btn__danger"
           onClick={() => props.deleteTask(props.id)}>
           Delete <span className="visually-hidden">{props.name}</span>
-        </button>
+        </button>   
+        <Popup // à 3
+ trigger={
+ <button type="button" className="btn">
+ {" "}
+ Take Photo{" "}
+ </button>
+ }
+ modal
+ >
+ <div>
+ <WebcamCapture id={props.id} photoedTask={props.photoedTask} />
+ </div>
+ </Popup>
+ <Popup // à 4
+ trigger={
+ <button type="button" className="btn">
+ {" "}
+ View Photo{" "}
+ </button>
+ }
+ modal
+ >
+  <div>
+ <ViewPhoto id={props.id} alt={props.name} />
+ </div></Popup>     
       </div>
     </div>
+
   );
+
+ 
 
   useEffect(() => {
     if (!wasEditing && isEditing) {
@@ -108,4 +142,85 @@ function Todo(props) {
   return <li className="todo">{isEditing ? editingTemplate : viewTemplate}</li>;
 }
 
+const WebcamCapture = (props) => {
+  // à 1 Prepare the Hooks
+  const webcamRef = useRef(null);
+  const [imgSrc, setImgSrc] = useState(null);
+  const [imgId, setImgId] = useState(null);
+  const [photoSave, setPhotoSave] = useState(false);
+  // à 2 When photo save detected call photoedTask in App.js to update task
+ // in localStorage to indicate it has a photo. */
+  useEffect(() => {
+  if (photoSave) {
+  console.log("useEffect detected photoSave");
+  props.photoedTask(imgId);
+  setPhotoSave(false);
+  }
+  });
+  console.log("WebCamCapture", props.id);
+ 
+  // à 3 The callback function saved in the const capture.
+  const capture = useCallback( (id) => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImgSrc(imageSrc);
+    console.log("capture", imageSrc.length, id);
+    },
+    [webcamRef, setImgSrc]
+    );
+    // à 4 The savePhoto function saved in the const savePhoto
+    const savePhoto = (id, imgSrc) => {
+    console.log("savePhoto", imgSrc.length, id);
+    addPhoto(id, imgSrc);
+    setImgId(id);
+    setPhotoSave(true);
+    };
+    // à 5 cancelPhoto can be easily improved. Any idea? Easy extra marks!
+    const cancelPhoto = (id, imgSrc) => {
+    console.log("cancelPhoto", imgSrc.length, id);
+    };
+    // à 6 Let’s return the JSX to be rendered in the screen. Notice the conditionals &&
+    return (
+    <>
+    {!imgSrc && ( // Before image capture show live picture from camera
+    <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
+    )}
+    {imgSrc && <img src={imgSrc} />} // After image capture show the static picture captured
+    <div className="btn-group">
+    {!imgSrc && ( // Before image capture show capture button &functionality
+    <button
+    type="button"
+    className="btn"
+    onClick={() => capture(props.id)}>
+    Capture photo
+    </button>
+    )}
+    {imgSrc && ( // After image capture show save button & functionality
+    <button
+    type="button"
+    className="btn"
+    onClick={() => savePhoto(props.id, imgSrc)}>
+    Save Photo
+    </button>
+    )}
+    <button // Cancel button not implemented but you could fix this.
+    type="button"
+    className="btn todo-cancel"
+    onClick={() => cancelPhoto(props.id, imgSrc)}>
+    Cancel
+    </button>
+    </div>
+    </>);
+   };
+   const ViewPhoto = (props) => {
+    // 1 à Retrieving photo by id from IndexedDB using GetPhotoSrc in db.js.
+    const photoSrc = GetPhotoSrc(props.id);
+    return (
+    <>
+    <div>
+THIS IS THE PHOTO 
+    <img src={photoSrc} alt={props.name} />
+    </div>
+    </>
+    );
+   };
 export default Todo;
